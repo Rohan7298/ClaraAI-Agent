@@ -1,0 +1,7 @@
+Beta Electric onboarding updates:
+
+We've expanded our service area to include all of Cook County.
+
+Emergency definition now includes flickering lights that won't stop.
+
+Integration constraint: Always create a service ticket in ServiceTrade before any work.

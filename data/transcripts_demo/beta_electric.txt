@@ -1,0 +1,27 @@
+Demo call with Beta Electric
+
+Caller: This is Sarah from Beta Electric. We're an electrical contracting company.
+
+Agent: Tell me about your business hours.
+
+Caller: Monday through Friday, 7:30 AM to 4:30 PM Central Time. Closed weekends.
+
+Agent: What services do you provide?
+
+Caller: Electrical repairs, wiring installations, panel upgrades, and emergency electrical services.
+
+Agent: How do you define an emergency?
+
+Caller: Power outages, sparking outlets, exposed wires - anything that's a fire hazard or safety risk.
+
+Agent: What's your emergency routing procedure?
+
+Caller: First try the on-call electrician, if no answer in 20 seconds, try the office manager, then voicemail with promise to call back within 30 minutes.
+
+Agent: Office address?
+
+Caller: 456 Oak Avenue, Chicago, IL 60611.
+
+Agent: Integration constraints?
+
+Caller: Never schedule work in ServiceTrade without manager approval first.

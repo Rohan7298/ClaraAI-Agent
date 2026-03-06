@@ -1,0 +1,429 @@
+{
+  "name": "Pipeline B: Onboarding → Agent Modification",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "folderPath",
+              "value": "/workspace/data/transcripts_onboarding"
+            }
+          ]
+        }
+      },
+      "id": "set-folder",
+      "name": "Set Folder Path",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\nconst folder = $input.first().json.folderPath;\nconst files = fs.readdirSync(folder).filter(f => f.endsWith('.txt'));\nreturn files.map(file => ({ json: { filename: file, fullPath: path.join(folder, file) } }));"
+      },
+      "id": "list-files",
+      "name": "List Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1
+      },
+      "id": "split-batches",
+      "name": "Split Into Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "fileName": "={{ $json.fullPath }}",
+        "dataPropertyName": "data",
+        "binaryPropertyName": "data"
+      },
+      "id": "read-onboarding-file",
+      "name": "Read Onboarding File",
+      "type": "n8n-nodes-base.readBinaryFiles",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "command": "python3 /workspace/scripts/extract_onboarding.py",
+        "executeWith": "stdin"
+      },
+      "id": "extract-updates",
+      "name": "Extract Updates",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const updates = JSON.parse($input.first().json.stdout);\nconst filename = $('Read Onboarding File').item.json.filename;\nconst account_id = filename.replace('.txt', '');\nreturn [{ json: { account_id, updates } }];"
+      },
+      "id": "post-process-updates",
+      "name": "Post-process Updates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "fileName": "=/workspace/outputs/accounts/{{ $json.account_id }}/v1/memo.json"
+      },
+      "id": "read-v1-memo",
+      "name": "Read v1 Memo",
+      "type": "n8n-nodes-base.readBinaryFiles",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const v1 = JSON.parse($input.first().json.data.toString());\nconst updates = $('Post-process Updates').item.json.updates;\nreturn [{ json: { v1_memo: v1, updates } }];"
+      },
+      "id": "prepare-merge",
+      "name": "Prepare Merge",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "command": "python3 /workspace/scripts/apply_updates.py",
+        "executeWith": "stdin"
+      },
+      "id": "apply-updates",
+      "name": "Apply Updates",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [2050, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const v2_memo = JSON.parse($input.first().json.stdout);\nv2_memo._version = 'v2';\nreturn [{ json: v2_memo }];"
+      },
+      "id": "post-process-v2",
+      "name": "Post-process v2 Memo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2250, 300]
+    },
+    {
+      "parameters": {
+        "command": "python3 /workspace/scripts/generate_agent_spec.py",
+        "executeWith": "stdin"
+      },
+      "id": "generate-v2-spec",
+      "name": "Generate v2 Agent Spec",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [2450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const spec = JSON.parse($input.first().json.stdout);\nspec.version = 'v2';\nreturn [{ json: spec }];"
+      },
+      "id": "post-process-v2-spec",
+      "name": "Post-process v2 Spec",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const v1 = JSON.parse($('Read v1 Memo').item.json.data.toString());\nconst v2 = $('Post-process v2 Memo').item.json;\nconst account_id = $('Post-process Updates').item.json.account_id;\nreturn [{ json: { v1, v2, account_id } }];"
+      },
+      "id": "prepare-diff",
+      "name": "Prepare Diff",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2850, 300]
+    },
+    {
+      "parameters": {
+        "command": "python3 /workspace/scripts/diff_memo.py",
+        "executeWith": "stdin"
+      },
+      "id": "generate-changelog",
+      "name": "Generate Changelog",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [3050, 300]
+    },
+    {
+      "parameters": {
+        "fileName": "=/workspace/outputs/accounts/{{ $json.account_id }}/v2/memo.json",
+        "dataPropertyName": "data"
+      },
+      "id": "save-v2-memo",
+      "name": "Save v2 Memo",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [3250, 200]
+    },
+    {
+      "parameters": {
+        "fileName": "=/workspace/outputs/accounts/{{ $json.account_id }}/v2/agent_spec.json",
+        "dataPropertyName": "data"
+      },
+      "id": "save-v2-spec",
+      "name": "Save v2 Agent Spec",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [3250, 300]
+    },
+    {
+      "parameters": {
+        "fileName": "=/workspace/outputs/accounts/{{ $json.account_id }}/v2/changelog.md",
+        "text": "={{ $json.stdout }}"
+      },
+      "id": "save-changelog",
+      "name": "Save Changelog",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [3250, 400]
+    },
+    {
+      "parameters": {
+        "fileName": "/workspace/outputs/tasks.json",
+        "text": "=[{ \"timestamp\": new Date().toISOString(), \"account_id\": $json.account_id, \"stage\": \"v2\", \"status\": \"updated\" }]",
+        "options": {
+          "append": true
+        }
+      },
+      "id": "log-task",
+      "name": "Log Task",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [3450, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Folder Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Folder Path": {
+      "main": [
+        [
+          {
+            "node": "List Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Files": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches": {
+      "main": [
+        [
+          {
+            "node": "Read Onboarding File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Onboarding File": {
+      "main": [
+        [
+          {
+            "node": "Extract Updates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Updates": {
+      "main": [
+        [
+          {
+            "node": "Post-process Updates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post-process Updates": {
+      "main": [
+        [
+          {
+            "node": "Read v1 Memo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read v1 Memo": {
+      "main": [
+        [
+          {
+            "node": "Prepare Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Merge": {
+      "main": [
+        [
+          {
+            "node": "Apply Updates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Updates": {
+      "main": [
+        [
+          {
+            "node": "Post-process v2 Memo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post-process v2 Memo": {
+      "main": [
+        [
+          {
+            "node": "Generate v2 Agent Spec",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Diff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate v2 Agent Spec": {
+      "main": [
+        [
+          {
+            "node": "Post-process v2 Spec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post-process v2 Spec": {
+      "main": [
+        [
+          {
+            "node": "Save v2 Memo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save v2 Agent Spec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Diff": {
+      "main": [
+        [
+          {
+            "node": "Generate Changelog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Changelog": {
+      "main": [
+        [
+          {
+            "node": "Save Changelog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save v2 Memo": {
+      "main": [
+        [
+          {
+            "node": "Log Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save v2 Agent Spec": {
+      "main": [
+        [
+          {
+            "node": "Log Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Changelog": {
+      "main": [
+        [
+          {
+            "node": "Log Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "onboarding-workflow-v1"
+}

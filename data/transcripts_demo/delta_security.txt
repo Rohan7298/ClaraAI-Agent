@@ -1,0 +1,27 @@
+Demo call with Delta Security Systems
+
+Caller: This is Tom from Delta Security. We install and monitor security systems.
+
+Agent: Hours of operation?
+
+Caller: 24/7 monitoring center always staffed. Sales office open 9 AM to 5 PM Pacific Time weekdays.
+
+Agent: What services do you offer?
+
+Caller: Security system installation, camera systems, access control, 24/7 monitoring.
+
+Agent: Emergency definition?
+
+Caller: Burglary in progress, fire alarm, medical emergency button press.
+
+Agent: Emergency routing?
+
+Caller: Immediately transfer to monitoring center operators. If transfer fails, take location and emergency type, then dispatch authorities directly.
+
+Agent: Office address?
+
+Caller: 321 Cedar Lane, San Francisco, CA 94105.
+
+Agent: Any special rules?
+
+Caller: Never transfer alarm signals to regular sales line. Always use monitoring center.

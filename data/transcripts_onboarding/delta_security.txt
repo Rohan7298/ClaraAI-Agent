@@ -1,0 +1,7 @@
+Delta Security updates:
+
+Now offering smart home automation integration with security systems.
+
+Emergency definition: Added "glass break detection" to emergency triggers.
+
+After hours flow: For non-emergencies, now offer option to schedule callback for next business day via text.

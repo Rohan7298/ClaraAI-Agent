@@ -1,0 +1,27 @@
+Demo call with Gamma Landscaping
+
+Caller: Jenny from Gamma Landscaping and Lawn Care.
+
+Agent: Business hours?
+
+Caller: March through October: 7 AM to 7 PM Monday-Saturday. November through February: 8 AM to 5 PM weekdays only. Central Time.
+
+Agent: Services?
+
+Caller: Lawn mowing, tree trimming, snow removal, irrigation installation.
+
+Agent: Emergency definition?
+
+Caller: Fallen trees blocking driveway, severe flooding, burst irrigation pipes.
+
+Agent: Emergency routing?
+
+Caller: Call owner directly at 555-0123, then manager at 555-0124, then voicemail.
+
+Agent: Office address?
+
+Caller: 555 Maple Drive, Minneapolis, MN 55401.
+
+Agent: Integration constraints?
+
+Caller: Don't create jobs in system for snow removal until customer confirms pricing.

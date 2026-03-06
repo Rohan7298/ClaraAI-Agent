@@ -1,0 +1,274 @@
+{
+  "name": "Pipeline A: Demo Call → Preliminary Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "folderPath",
+              "value": "/workspace/data/transcripts_demo"
+            }
+          ]
+        }
+      },
+      "id": "set-folder",
+      "name": "Set Folder Path",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read all .txt files from the folder\nconst fs = require('fs');\nconst path = require('path');\nconst folder = $input.first().json.folderPath;\nconst files = fs.readdirSync(folder).filter(f => f.endsWith('.txt'));\nreturn files.map(file => ({ json: { filename: file, fullPath: path.join(folder, file) } }));"
+      },
+      "id": "list-files",
+      "name": "List Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1
+      },
+      "id": "split-batches",
+      "name": "Split Into Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "fileName": "={{ $json.fullPath }}",
+        "dataPropertyName": "data",
+        "binaryPropertyName": "data"
+      },
+      "id": "read-file",
+      "name": "Read File",
+      "type": "n8n-nodes-base.readBinaryFiles",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "command": "python3 /workspace/scripts/extract_demo.py",
+        "executeWith": "stdin"
+      },
+      "id": "extract-memo",
+      "name": "Extract Memo",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const memo = JSON.parse($input.first().json.stdout);\n// Add account_id from filename if not present\nif (!memo.account_id) {\n  const filename = $('Read File').item.json.filename;\n  memo.account_id = filename.replace('.txt', '');\n}\nreturn [{ json: memo }];"
+      },
+      "id": "post-process-memo",
+      "name": "Post-process Memo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "command": "python3 /workspace/scripts/generate_agent_spec.py",
+        "executeWith": "stdin"
+      },
+      "id": "generate-spec",
+      "name": "Generate Agent Spec",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const spec = JSON.parse($input.first().json.stdout);\nspec.version = 'v1';\nreturn [{ json: spec }];"
+      },
+      "id": "post-process-spec",
+      "name": "Post-process Spec",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "fileName": "=/workspace/outputs/accounts/{{ $json.account_id }}/v1/memo.json",
+        "dataPropertyName": "data"
+      },
+      "id": "save-memo",
+      "name": "Save Memo",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [2050, 250]
+    },
+    {
+      "parameters": {
+        "fileName": "=/workspace/outputs/accounts/{{ $json.account_id }}/v1/agent_spec.json",
+        "dataPropertyName": "data"
+      },
+      "id": "save-spec",
+      "name": "Save Agent Spec",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [2050, 350]
+    },
+    {
+      "parameters": {
+        "fileName": "/workspace/outputs/tasks.json",
+        "text": "=[{ \"timestamp\": new Date().toISOString(), \"account_id\": $json.account_id, \"stage\": \"v1\", \"status\": \"processed\" }]",
+        "options": {
+          "append": true
+        }
+      },
+      "id": "log-task",
+      "name": "Log Task",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [2250, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Folder Path",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Folder Path": {
+      "main": [
+        [
+          {
+            "node": "List Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Files": {
+      "main": [
+        [
+          {
+            "node": "Split Into Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Batches": {
+      "main": [
+        [
+          {
+            "node": "Read File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read File": {
+      "main": [
+        [
+          {
+            "node": "Extract Memo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Memo": {
+      "main": [
+        [
+          {
+            "node": "Post-process Memo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post-process Memo": {
+      "main": [
+        [
+          {
+            "node": "Generate Agent Spec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Agent Spec": {
+      "main": [
+        [
+          {
+            "node": "Post-process Spec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post-process Spec": {
+      "main": [
+        [
+          {
+            "node": "Save Memo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Agent Spec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Memo": {
+      "main": [
+        [
+          {
+            "node": "Log Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Agent Spec": {
+      "main": [
+        [
+          {
+            "node": "Log Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "demo-workflow-v1"
+}

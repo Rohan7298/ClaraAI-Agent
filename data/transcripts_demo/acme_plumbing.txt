@@ -1,0 +1,23 @@
+Demo call with Acme Plumbing
+
+Caller: Hi, this is John from Acme Plumbing. We're a plumbing company serving residential customers.
+
+Agent: Great, what are your business hours?
+
+Caller: We're open Monday to Friday, 8 AM to 5 PM, Eastern Time. For after-hours emergencies, we have an on-call rotation.
+
+Agent: What services do you offer?
+
+Caller: We do general plumbing repairs, water heater installation, drain cleaning, and emergency leak repairs.
+
+Agent: How do you handle emergencies?
+
+Caller: For water leaks or burst pipes, callers should be transferred immediately to our on-call plumber. If the first person doesn't answer within 30 seconds, try the backup number, then take a message.
+
+Agent: What's your office address?
+
+Caller: 123 Main Street, Springfield, IL 62701.
+
+Agent: Any special rules for non-emergency calls?
+
+Caller: During business hours, route to our dispatcher who schedules appointments. After hours, take a message and they'll get a call back next business day.

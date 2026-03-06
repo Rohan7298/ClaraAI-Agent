@@ -1,0 +1,27 @@
+Demo call with Alpha HVAC
+
+Caller: Mike here from Alpha Heating and Cooling. We do HVAC installation and repair.
+
+Agent: Business hours?
+
+Caller: 8 AM to 6 PM Monday-Friday, 9 AM to 2 PM Saturday, Eastern Time. Closed Sunday.
+
+Agent: Services?
+
+Caller: AC repair, furnace repair, duct cleaning, thermostat installation, emergency HVAC services.
+
+Agent: Emergency definition?
+
+Caller: No heat in winter (below 50°F inside), no AC in summer (above 85°F inside), gas leaks, carbon monoxide issues.
+
+Agent: Emergency routing?
+
+Caller: Transfer to emergency dispatch line. If transfer fails after 2 attempts, take message and dispatch will call within 15 minutes.
+
+Agent: Office address?
+
+Caller: 789 Pine Road, Detroit, MI 48201.
+
+Agent: After hours flow?
+
+Caller: Greet caller, ask if emergency, if yes follow emergency protocol, if no take message for next business day.

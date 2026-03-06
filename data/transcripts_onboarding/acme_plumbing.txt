@@ -1,0 +1,9 @@
+Onboarding call with Acme Plumbing
+
+We need to update our business hours - we're now open Saturdays from 9 AM to 1 PM.
+
+Also, we added water treatment system installation to our services.
+
+Emergency routing: If the on-call plumber doesn't answer, now we want to try the dispatcher before taking a message.
+
+Our new address is 124 Main Street, same city.
